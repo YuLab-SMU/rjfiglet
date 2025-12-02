@@ -67,53 +67,6 @@ head(fonts)
 figlet("Awesome", font = "slant")
 ```
 
-## 开发过程总结
-
-### 项目背景
-
-`rjfiglet` 是一个展示如何将Julia功能封装到R包中的示例项目。通过使用`JuliaCall`包，我们可以在R中调用Julia代码，实现跨语言的功能复用。
-
-### 技术架构
-
-1. **R-Julia桥接**：使用`JuliaCall`包作为桥梁，允许R代码调用Julia函数
-2. **包结构**：标准的R包结构，包含`R/`、`src/`、`man/`等目录
-3. **函数封装**：将Julia的`FIGlet.jl`包的功能封装为R函数
-
-### 关键实现步骤
-
-1. **环境设置**
-   - 确保Julia正确安装并配置
-   - 在Julia中安装`FIGlet.jl`和`RCall`包
-   - 在R中安装`JuliaCall`包
-
-2. **函数封装**
-   - 在`R/figlet.R`中定义R函数
-   - 使用`JuliaCall::julia_call()`调用Julia函数
-   - 处理数据类型转换（R ↔ Julia）
-
-3. **错误处理**
-   - 添加输入验证
-   - 处理Julia调用可能出现的错误
-   - 提供有意义的错误信息
-
-4. **文档编写**
-   - 使用roxygen2编写函数文档
-   - 创建示例代码
-   - 编写使用说明
-
-### 封装要点
-
-1. **初始化Julia**：在包加载时初始化Julia环境
-2. **函数映射**：将Julia函数参数映射到R函数参数
-3. **性能考虑**：避免频繁的Julia环境初始化
-4. **用户体验**：提供简单的R接口，隐藏复杂的跨语言细节
-
-### 扩展建议
-
-1. 添加更多FIGlet.jl功能的封装
-2. 实现缓存机制提高性能
-3. 添加图形输出选项
-4. 创建Shiny应用演示
 
 ## Documentation
 
@@ -130,8 +83,5 @@ See the `demo/` and `examples/` directories for more examples:
 ```r
 # Run demo
 demo("figlet_demo", package = "rjfiglet")
-
-# Or source the example file
-source(system.file("examples", "advanced.R", package = "rjfiglet"))
 ```
 
