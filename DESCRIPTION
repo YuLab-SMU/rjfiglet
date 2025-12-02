@@ -1,0 +1,22 @@
+Package: rjfiglet
+Title: R Interface to Julia's FIGlet.jl for ASCII Art
+Version: 0.1.0
+Authors@R: person(given="Guangchuang", family="Yu", email = "guangchuangyu@gmail.com", role = c("aut", "cre"))
+Maintainer: Guangchuang Yu <guangchuangyu@gmail.com>
+Description: Provides an R interface to the Julia package FIGlet.jl for generating ASCII art text banners.
+    This package uses juliaCall to call Julia functions from R, allowing R users to access figlet functionality.
+License: Artistic-2.0
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.3
+Imports:
+    JuliaCall,
+    yulab.utils
+Suggests:
+    testthat (>= 3.0.0),
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr
+SystemRequirements: Julia (>= 1.6) with FIGlet.jl installed
+URL: https://github.com/yourusername/rjfiglet
+BugReports: https://github.com/yourusername/rjfiglet/issues
