@@ -54,6 +54,7 @@ install.packages("JuliaCall")
    - 添加包元数据：名称、版本、作者、描述
    - 声明依赖：`JuliaCall`
    - 设置许可证：Artistic-2.0
+   - 添加 VignetteBuilder：`quarto`（用于创建文档）
 
 3. **配置 NAMESPACE 文件**
    - 导出公共函数：`figlet`, `figlet_list_fonts`, `figlet_version`
@@ -148,8 +149,15 @@ check_julia_setup <- function() {
 | 数值 | Int/Float | `sprintf` 格式化 | `sprintf(', width=%d', width)` |
 | 符号 | Symbol | 添加冒号前缀 | `sprintf(', justify=:%s', justify)` |
 | 逻辑值 | Bool | 转换为小写 | `'true'` 或 `'false'` |
+| 向量 | Array | 使用 `paste()` 和方括号 | `paste0('[', paste(x, collapse=', '), ']')` |
+| 列表 | Tuple | 使用圆括号包裹 | `paste0('(', paste(x, collapse=', '), ')')` |
 
 **重要发现**：在开发过程中，我们发现 `JuliaCall::julia_get()` 函数不存在，因此直接使用 `JuliaCall::julia_eval()` 的返回值，这简化了代码。
+
+**高级转换技巧**：
+1. **复杂数据结构**：对于嵌套结构，先在 R 中转换为 JSON 字符串，然后在 Julia 中使用 `JSON.parse()`
+2. **矩阵转换**：使用 `JuliaCall::julia_eval("Matrix{Float64}")` 创建适当类型的矩阵
+3. **数据框转换**：通过 CSV 文件或逐列转换，使用 `DataFrames.jl` 包
 
 ### 第 6 步：文档与示例
 
@@ -221,6 +229,27 @@ test_that("figlet generates ASCII art", {
 2. 使用 `cat(expr)` 查看构建的 Julia 表达式
 3. 在 Julia REPL 中直接测试表达式
 
+### Q4: 内存泄漏问题
+**原因**：Julia 对象没有被正确释放
+**解决**：
+1. 使用 `JuliaCall::julia_gc()` 手动触发垃圾回收
+2. 避免在循环中创建大量 Julia 对象
+3. 使用 `JuliaCall::julia_void_eval()` 执行不需要返回值的表达式
+
+### Q5: 类型转换错误
+**原因**：R 和 Julia 类型不匹配
+**解决**：
+1. 参考数据类型转换策略表
+2. 使用 `typeof()` 检查 R 对象的类型
+3. 在 Julia 中使用 `typeof()` 检查转换后的类型
+
+### Q6: 包加载冲突
+**原因**：多个 Julia 包有相同函数名
+**解决**：
+1. 在 Julia 表达式中使用完整包名：`FIGlet.render`
+2. 避免同时加载有冲突的 Julia 包
+3. 使用模块限定符：`Main.FIGlet.render`
+
 ## 扩展建议
 
 ### 1. 添加更多 FIGlet.jl 功能
@@ -237,6 +266,121 @@ test_that("figlet generates ASCII art", {
 - 添加进度指示器
 - 实现交互式字体预览
 - 创建 Shiny 应用示例
+
+### 4. 高级主题
+- **自定义 Julia 模块**：创建专门的 Julia 模块来封装复杂逻辑
+- **并行执行**：利用 Julia 的多线程能力加速批量处理
+- **混合编程**：在 R 和 Julia 之间传递复杂数据结构
+- **条件编译**：根据 Julia 版本或特性选择不同的实现
+- **插件系统**：允许用户扩展字体和渲染功能
+
+## 教学内容：批处理与并行执行
+
+### 批处理操作
+
+在封装 Julia 包时，经常需要处理批量数据。为了提高性能，应避免在 R 循环中重复调用 Julia，而是使用向量化操作：
+
+```r
+# 首先在 Julia 中定义处理函数
+JuliaCall::julia_eval("function process(x)
+  return x^2
+end")
+
+# 低效方法：在 R 循环中重复调用 Julia
+results <- sapply(1:10, function(i) {
+  JuliaCall::julia_eval(sprintf("process(%d)", i))
+})
+
+# 高效方法：一次性传递向量化操作
+results <- JuliaCall::julia_eval("[process(i) for i in 1:10]")
+results
+```
+
+**关键点**：
+- 将批量数据作为向量/列表一次性传递给 Julia
+- 在 Julia 内部使用循环或向量化操作
+- 减少 R-Julia 上下文切换的开销
+
+### 并行执行
+
+Julia 支持多线程和分布式计算，可以通过 R 包装器暴露这些能力：
+
+```r
+parallel_computation <- function(inputs) {
+  # 加载分布式计算包
+  JuliaCall::julia_eval("using Distributed")
+  
+  # 添加工作进程（根据系统资源调整数量）
+  JuliaCall::julia_eval("addprocs(4)")  # 添加 4 个进程
+  
+  # 分布式计算
+  result <- JuliaCall::julia_eval(sprintf(
+    "@distributed (+) for x in %s
+        expensive_computation(x)
+    end", 
+    paste(inputs, collapse = ", ")
+  ))
+  
+  # 获取结果
+  return(JuliaCall::julia_get(result))
+}
+```
+
+**注意事项**：
+1. **资源管理**：根据系统资源合理设置进程数
+2. **数据序列化**：确保输入数据可以正确序列化到工作进程
+3. **错误处理**：并行环境中的错误可能更难调试
+4. **内存使用**：每个工作进程都会复制数据，注意内存消耗
+
+### 自定义 Julia 模块
+
+对于复杂的包装器，可以创建专门的 Julia 模块来封装逻辑：
+
+```julia
+# src/mywrapper.jl
+module MyWrapper
+
+using TargetPackage
+
+export wrapped_foo
+
+function wrapped_foo(x, y)
+    # 预处理
+    result = TargetPackage.foo(x, y)
+    # 后处理
+    return result
+end
+
+end # module
+```
+
+在 R 中加载模块：
+
+```r
+JuliaCall::julia_source("src/mywrapper.jl")
+```
+
+### 性能优化策略
+
+1. **缓存机制**：对于昂贵的 Julia 计算，考虑使用缓存
+   ```r
+   library(memoise)
+   
+   cached_julia_computation <- memoise(function(x) {
+     JuliaCall::julia_eval(sprintf("expensive_computation(%f)", x))
+   })
+   ```
+
+2. **延迟加载**：只在需要时初始化 Julia 环境
+3. **结果缓存**：对于重复计算，缓存结果避免重复执行
+4. **内存管理**：定期调用 `JuliaCall::julia_gc()` 释放未使用的 Julia 对象
+
+### 实际应用建议
+
+- **测试并行性能**：在小规模数据上测试并行化的收益
+- **监控资源使用**：注意 CPU 和内存使用情况
+- **提供回退机制**：当并行环境不可用时提供串行实现
+- **文档说明**：清晰说明并行化的前提条件和限制
 
 ## 总结
 

@@ -1,0 +1,63 @@
+---
+title: "rjfiglet: ASCII Art with Julia's FIGlet.jl"
+author: "Guangchuang Yu\\
+
+        School of Basic Medical Sciences, Southern Medical University"
+date: "`r Sys.Date()`"
+format: 
+    html:
+        embed-resources: true
+        fontsize: 1.1em
+        linestretch: 1.7
+vignette: >
+  %\VignetteIndexEntry{rjfiglet introduction}
+  %\VignetteEngine{quarto::html}
+  %\VignetteEncoding{UTF-8}
+---
+
+
+```{r}
+#| label: setup
+#| include: false
+library(rjfiglet)
+```
+
+## Introduction
+
+`rjfiglet` is an R package that provides access to Julia's FIGlet.jl library for creating ASCII art text. This vignette demonstrates the basic functionality of the package.
+
+## Basic Usage
+
+### Creating ASCII Art
+
+The main function `figlet()` creates ASCII art from text:
+
+```{r}
+#| label: basic-figlet
+#| warning: false
+#| message: false
+
+# Simple ASCII art
+figlet("Hello R!")
+```
+
+### Using Different Fonts
+
+You can specify different fonts for your ASCII art:
+
+```{r}
+#| label: different-fonts
+#| warning: false
+#| message: false
+
+# List available fonts
+fonts <- figlet_list_fonts()
+head(fonts, 10)
+
+# Create art with different fonts
+figlet("R Stats", font = "slant")
+
+figlet("Data Science", font = "banner")
+
+figlet("YuLab-SMU", font = "3d")
+```

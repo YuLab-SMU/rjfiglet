@@ -13,10 +13,9 @@ Imports:
     JuliaCall,
     yulab.utils
 Suggests:
-    testthat (>= 3.0.0),
-    knitr,
-    rmarkdown
-VignetteBuilder: knitr
+    quarto,
+    testthat (>= 3.0.0)
+VignetteBuilder: quarto
 SystemRequirements: Julia (>= 1.6) with FIGlet.jl installed
 URL: https://github.com/yourusername/rjfiglet
 BugReports: https://github.com/yourusername/rjfiglet/issues
