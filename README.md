@@ -19,23 +19,23 @@
 2. **Julia** (>= 1.6) installed and accessible in PATH
 3. **JuliaCall** R package (will be installed automatically)
 
-**重要：安装Julia和所需包**
+**Important: Installing Julia and Required Packages**
 
-在运行此包之前，您需要先安装Julia，并在Julia中安装必要的包：
+Before running this package, you need to install Julia and the necessary packages in Julia:
 
-1. **安装Julia**
-   - 从 [Julia官网](https://julialang.org/downloads/) 下载并安装Julia
-   - 确保Julia可执行文件在系统PATH中
+1. **Install Julia**
+   - Download and install Julia from [Julia official website](https://julialang.org/downloads/)
+   - Ensure the Julia executable is in your system PATH
 
-2. **在Julia中安装所需包**
-   打开Julia REPL并运行：
+2. **Install Required Packages in Julia**
+   Open Julia REPL and run:
    ```julia
    using Pkg
    Pkg.add("FIGlet")
    Pkg.add("RCall")
    ```
 
-3. **验证安装**
+3. **Verify Installation**
    ```julia
    using FIGlet
    using RCall
